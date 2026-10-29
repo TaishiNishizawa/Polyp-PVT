@@ -156,16 +156,19 @@ class SpatialAttention(nn.Module):
 
 
 class PolypPVT(nn.Module):
-    def __init__(self, channel=32):
+    def __init__(self, channel=32, pretrained=True):
         super(PolypPVT, self).__init__()
 
         self.backbone = pvt_v2_b2()  # [64, 128, 320, 512]
-        path = './pretrained_pth/pvt_v2_b2.pth'
-        save_model = torch.load(path)
-        model_dict = self.backbone.state_dict()
-        state_dict = {k: v for k, v in save_model.items() if k in model_dict.keys()}
-        model_dict.update(state_dict)
-        self.backbone.load_state_dict(model_dict)
+        # pretrained=False leaves the backbone uninitialized, for callers that load the
+        # ImageNet weights themselves (the path below is relative to the working directory).
+        if pretrained:
+            path = './pretrained_pth/pvt_v2_b2.pth'
+            save_model = torch.load(path)
+            model_dict = self.backbone.state_dict()
+            state_dict = {k: v for k, v in save_model.items() if k in model_dict.keys()}
+            model_dict.update(state_dict)
+            self.backbone.load_state_dict(model_dict)
 
         self.Translayer2_0 = BasicConv2d(64, channel, 1)
         self.Translayer2_1 = BasicConv2d(128, channel, 1)
